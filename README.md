@@ -25,7 +25,6 @@ Todo se compiló y midió en la Jetson Nano.
 | Equipo | Jetson Nano (GPU Maxwell, `sm_53`) |
 | Sistema | Ubuntu 18.04.6 LTS, kernel 4.9.253-tegra, aarch64 |
 | Herramientas | gcc 7.5.0, nvcc, meson 0.45.1, ninja 1.8.2 |
-| CUDA y OpenCV | _pendiente_ |
 | Perfilado CPU | `std::chrono` y Google Performance Tools |
 | Perfilado GPU | nvprof |
 
