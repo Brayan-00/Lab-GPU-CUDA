@@ -1,4 +1,0 @@
-Validacion contra CPU (900 pasos)
-Error maximo alturas: 0.000e+00
-Error medio alturas: 0.000e+00
-Error maximo pixel: 1 (de 255)

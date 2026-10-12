@@ -4,9 +4,8 @@
 //     D2H baja de 1.2 MB a 0.4 MB por cuadro;
 //   - se quita el cudaDeviceSynchronize de cada paso (los kernels del mismo
 //     stream ya se ejecutan en orden y cudaMemcpy espera por ellos);
-//   - los cv::Mat del host se reutilizan, y la CPU pasa el gris a BGR justo
-//     antes de escribir. El VideoWriter se queda en color: probado con entrada
-//     en gris, writer.write tardo bastante mas en la Jetson.
+//   - los cv::Mat del host se reutilizan y la CPU pasa el gris a BGR justo
+//     antes de escribir al video (el VideoWriter trabaja en color).
 #include "common.h"
 
 __global__ void simulate_step_kernel(const float* previous, const float* current,

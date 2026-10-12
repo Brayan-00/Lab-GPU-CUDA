@@ -1,5 +1,5 @@
 project(
-  'drop-simulation',
+  'ejercicioD',
   'cpp',
   version: '0.1.0',
   default_options: [
@@ -37,19 +37,10 @@ cuda_obj = custom_target(
   ]
 )
 
-# Ejecutable unificado para la versión GPU (usando el main dentro de ported.cu)
+# Ejecutable de la versión GPU (el main está dentro de ported.cu)
 executable(
   'drop_simulation_gpu',
   sources: [cuda_obj],
   dependencies: [opencv_dep, cuda_dep],
-  install: false,
-
-)
-
-# 2. Ejecutable para la versión de CPU
-executable(
-  'drop_simulation_cpu',
-  sources: ['src/main_base.cpp'],
-  dependencies: [opencv_dep],
   install: false,
 )
