@@ -1,0 +1,23 @@
+Perfilado CPU con std::chrono
+
+Tiempo total: 111.135 s
+Pasos simulados: 900
+Rendimiento: 8.09827 pasos/s
+
+Resultados por sección:
+
+simulate_step()
+Tiempo: 5.80552 s
+Porcentaje: 5.22385 %
+
+render_frame()
+Tiempo: 86.5335 s
+Porcentaje: 77.8636 %
+
+writer.write()
+Tiempo: 18.7897 s
+Porcentaje: 16.9071 %
+
+Conclusión:
+render_frame() fue la sección con mayor tiempo de ejecución, seguida por writer.write().
+simulate_step() presentó un costo menor en la versión CPU medida.

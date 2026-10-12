@@ -12,7 +12,7 @@
 #include <opencv2/videoio.hpp>
 
 namespace {
-
+//Guarda los parámetros durante la simulación.
 struct Config {
     int width = 640;
     int height = 640;
@@ -26,11 +26,11 @@ struct Config {
     float drop_strength = 1.0f;
     std::string output = "output/drop_simulation.mp4";
 };
-
+//Convierte las coordenadas de la malla en una posición del vector.
 int index_of(int x, int y, int width) {
     return y * width + x;
 }
-
+//Genera la pertubación inicial de la gota en el centro de la malla.
 void add_drop(std::vector<float>& current, std::vector<float>& previous, const Config& cfg) {
     const float cx = 0.5f * static_cast<float>(cfg.width - 1);
     const float cy = 0.5f * static_cast<float>(cfg.height - 1);
@@ -48,7 +48,7 @@ void add_drop(std::vector<float>& current, std::vector<float>& previous, const C
         }
     }
 }
-
+// Aumenta el amortiguamiento cerca de los bordes para reducir las reflexiones
 float border_absorption(int x, int y, const Config& cfg) {
     constexpr int band = 32;
     const int dist = std::min({x, y, cfg.width - 1 - x, cfg.height - 1 - y});
@@ -59,7 +59,7 @@ float border_absorption(int x, int y, const Config& cfg) {
     const float t = 1.0f - static_cast<float>(dist) / static_cast<float>(band);
     return cfg.damping + cfg.edge_damping * t * t;
 }
-
+// Calcula el siguiente estado de la onda usando cada punto y sus vecinos
 void simulate_step(const std::vector<float>& previous,
                    const std::vector<float>& current,
                    std::vector<float>& next,
@@ -84,7 +84,7 @@ void simulate_step(const std::vector<float>& previous,
         }
     }
 }
-
+// Convierte los valores de la malla en una imagen para cada cuadro del video
 cv::Mat render_frame(const std::vector<float>& height, const Config& cfg, int frame_number) {
     cv::Mat image(cfg.height, cfg.width, CV_8UC3);
 
@@ -127,22 +127,22 @@ cv::Mat render_frame(const std::vector<float>& height, const Config& cfg, int fr
 }
 
 }  // namespace
-
+// Configuración de la simulación, se ejecuta el ciclo que genera el video
 int main() {
     try {
         const Config cfg;
         const int total_frames = static_cast<int>(std::round(cfg.seconds * cfg.fps));
         const std::size_t cells = static_cast<std::size_t>(cfg.width) * static_cast<std::size_t>(cfg.height);
-
+        //crea a carpeta donde se guarda el video
         std::filesystem::path output_path(cfg.output);
         if (output_path.has_parent_path()) {
             std::filesystem::create_directories(output_path.parent_path());
         }
-
+        // se reserva la memoria para los estados de la malla
         std::vector<float> previous(cells, 0.0f);
         std::vector<float> current(cells, 0.0f);
         std::vector<float> next(cells, 0.0f);
-
+        // crea la perturbación con la que se inicia la simulación
         add_drop(current, previous, cfg);
 
         cv::VideoWriter writer(
@@ -156,21 +156,23 @@ int main() {
         }
 
         const auto start = std::chrono::steady_clock::now();
-
+        // repite la simulación y genera cada cuadro del video
         for (int frame = 0; frame < total_frames; ++frame) {
+            //Actualiza el estado de la onda para el cuadro actual
             for (int step = 0; step < cfg.steps_per_frame; ++step) {
                 simulate_step(previous, current, next, cfg);
+                //intercambia los estados para continuar con el siguiente paso
                 previous.swap(current);
                 current.swap(next);
             }
-
+            // renderiza el estado actual y lo agrega al video
             writer.write(render_frame(current, cfg, frame));
 
             if (frame % std::max(1, total_frames / 10) == 0) {
                 std::cout << "Frame " << frame << " / " << total_frames << '\n';
             }
         }
-
+        //calcula el tiempo total y el rendimiento 
         const auto end = std::chrono::steady_clock::now();
         const double elapsed = std::chrono::duration<double>(end - start).count();
         const double simulated_steps = static_cast<double>(total_frames) * cfg.steps_per_frame;
