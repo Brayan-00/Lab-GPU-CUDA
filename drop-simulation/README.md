@@ -1,3 +1,72 @@
+# Laboratorio de aceleración heterogénea con GPU usando CUDA
+
+
+## Integrantes, curso y profesor
+
+### Integrantes
+
+1. Fiorela Chavarría Castrillo
+2. Fabián Parreaguirre Hidalgo
+3. Brayan Rodríguez Villalobos
+
+### Curso
+
+Introducción a la Computación Heterogénea - EL-5859
+
+### Profesor
+
+Dr. Luis G. León-Vega
+
+### Características del sistema
+
+
+
+## Ejercicio A
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Drop Simulation
 
 Prototipo CPU en C++ y OpenCV para simular la caida de una gota sobre un estanque
