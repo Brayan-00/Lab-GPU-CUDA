@@ -1,0 +1,19 @@
+Frame 0 / 900
+Frame 90 / 900
+Frame 180 / 900
+Frame 270 / 900
+Frame 360 / 900
+Frame 450 / 900
+Frame 540 / 900
+Frame 630 / 900
+Frame 720 / 900
+Frame 810 / 900
+Video generado: output/v4_async.mp4
+Tiempo: 13.3595 s
+Pasos simulados: 900
+Rendimiento: 67.3678 pasos/s
+Tiempo kernel simulacion: 0.578331 s
+Tiempo kernel render: 0.441391 s
+Tiempo copia D2H: 0.0429217 s
+Tiempo writer.write: 13.0841 s
+Espera por la GPU: 0.00435407 s

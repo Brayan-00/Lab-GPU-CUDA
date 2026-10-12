@@ -1,12 +1,12 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
-#include <filesystem>
+#include <sys/stat.h>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
-
+#include <sys/types.h>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>
@@ -16,7 +16,7 @@ namespace {
 struct Config {
     int width = 640;
     int height = 640;
-    double seconds = 30.0;
+    double seconds = 2.0;
     int fps = 30;
     int steps_per_frame = 1;
     float wave_speed = 0.45f;
@@ -134,10 +134,7 @@ int main() {
         const int total_frames = static_cast<int>(std::round(cfg.seconds * cfg.fps));
         const std::size_t cells = static_cast<std::size_t>(cfg.width) * static_cast<std::size_t>(cfg.height);
 
-        std::filesystem::path output_path(cfg.output);
-        if (output_path.has_parent_path()) {
-            std::filesystem::create_directories(output_path.parent_path());
-        }
+        mkdir("output", 0755);
 
         std::vector<float> previous(cells, 0.0f);
         std::vector<float> current(cells, 0.0f);
@@ -156,16 +153,31 @@ int main() {
         }
 
         const auto start = std::chrono::steady_clock::now();
+        double time_simulation = 0.0;
+        double time_render = 0.0;
+        double time_write = 0.0;
 
         for (int frame = 0; frame < total_frames; ++frame) {
             for (int step = 0; step < cfg.steps_per_frame; ++step) {
+                const auto sim_start = std::chrono::steady_clock::now();
                 simulate_step(previous, current, next, cfg);
+                const auto sim_end = std::chrono::steady_clock::now();
+                time_simulation +=
+                    std::chrono::duration<double>(sim_end - sim_start).count();
                 previous.swap(current);
                 current.swap(next);
             }
 
-            writer.write(render_frame(current, cfg, frame));
-
+            const auto render_start = std::chrono::steady_clock::now();
+            cv::Mat frame_image = render_frame(current, cfg, frame);
+            const auto render_end = std::chrono::steady_clock::now();
+            time_render +=
+                std::chrono::duration<double>(render_end - render_start).count();
+            const auto write_start = std::chrono::steady_clock::now();
+            writer.write(frame_image);
+            const auto write_end = std::chrono::steady_clock::now();
+            time_write +=
+                std::chrono::duration<double>(write_end - write_start).count();
             if (frame % std::max(1, total_frames / 10) == 0) {
                 std::cout << "Frame " << frame << " / " << total_frames << '\n';
             }
@@ -174,6 +186,14 @@ int main() {
         const auto end = std::chrono::steady_clock::now();
         const double elapsed = std::chrono::duration<double>(end - start).count();
         const double simulated_steps = static_cast<double>(total_frames) * cfg.steps_per_frame;
+
+        std::cout << "Tiempo simulate_step: "<< time_simulation << " s\n";
+        std::cout << "Tiempo render_frame: "<< time_render << " s\n";
+        std::cout << "Tiempo writer.write: "<< time_write << " s\n";
+        std::cout << "Porcentaje simulate_step: "<< (time_simulation / elapsed) * 100.0 << " %\n";
+
+        std::cout << "Porcentaje render_frame: "<< (time_render / elapsed) * 100.0 << " %\n";
+        std::cout << "Porcentaje writer.write: " << (time_write / elapsed) * 100.0 << " %\n";
 
         std::cout << "Video generado: " << cfg.output << '\n';
         std::cout << "Tiempo: " << elapsed << " s\n";
