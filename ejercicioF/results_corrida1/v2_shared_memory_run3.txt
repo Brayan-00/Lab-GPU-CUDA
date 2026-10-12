@@ -1,0 +1,18 @@
+Frame 0 / 900
+Frame 90 / 900
+Frame 180 / 900
+Frame 270 / 900
+Frame 360 / 900
+Frame 450 / 900
+Frame 540 / 900
+Frame 630 / 900
+Frame 720 / 900
+Frame 810 / 900
+Video generado: output/v2_shared_memory.mp4
+Tiempo: 40.9001 s
+Pasos simulados: 900
+Rendimiento: 22.0049 pasos/s
+Tiempo kernel simulacion: 5.51504 s
+Tiempo kernel render: 7.97573 s
+Tiempo copia D2H: 0.926433 s
+Tiempo writer.write: 26.0606 s

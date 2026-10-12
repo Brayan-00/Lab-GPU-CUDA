@@ -1,0 +1,18 @@
+Frame 0 / 900
+Frame 90 / 900
+Frame 180 / 900
+Frame 270 / 900
+Frame 360 / 900
+Frame 450 / 900
+Frame 540 / 900
+Frame 630 / 900
+Frame 720 / 900
+Frame 810 / 900
+Video generado: output/v0_base.mp4
+Tiempo: 14.3142 s
+Pasos simulados: 900
+Rendimiento: 62.8747 pasos/s
+Tiempo kernel simulacion: 0.46144 s
+Tiempo kernel render: 0.622212 s
+Tiempo copia D2H: 0.621196 s
+Tiempo writer.write: 12.3463 s

@@ -1,0 +1,10 @@
+==31621== NVPROF is profiling process 31621, command: ./build/drop_simulation_v3_aritmetica --seconds 5 --output output/perfil_v3_aritmetica.mp4
+==31621== Warning: Unified Memory Profiling is not supported on the underlying platform. System requirements for unified memory can be found at: http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#um-requirements
+==31621== Profiling application: ./build/drop_simulation_v3_aritmetica --seconds 5 --output output/perfil_v3_aritmetica.mp4
+==31621== Profiling result:
+            Type  Time(%)      Time     Calls       Avg       Min       Max  Name
+ GPU activities:   51.96%  91.922ms       150  612.81us  601.86us  642.96us  simulate_step_kernel(float const *, float const *, float*, int, int, float, float, float)
+                   44.04%  77.917ms       150  519.45us  518.11us  521.54us  render_frame_kernel(float const *, unsigned char*, int, int)
+                    3.58%  6.3329ms       150  42.219us  41.721us  48.077us  [CUDA memcpy DtoH]
+                    0.36%  643.01us         2  321.51us  284.97us  358.05us  [CUDA memcpy HtoD]
+                    0.05%  89.485us         1  89.485us  89.485us  89.485us  [CUDA memset]
