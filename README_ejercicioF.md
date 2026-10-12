@@ -1,6 +1,6 @@
 # Ejercicio F: optimización de la versión GPU
 
-Introducción a la Computación Heterogénea - EL-5859. Todo el código, el script de medición y los resultados están en la carpeta [`ejercicioF/`](ejercicioF/); este archivo lo explica.
+En la carpeta de ejercicioF los archivos se distribuyeron de la siguiente manera, se comparte esto para un mayor entendimiento del repositorio:
 
 ```text
 ejercicioF/
@@ -23,7 +23,7 @@ Las optimizaciones se hicieron en la Jetson Nano y cada una parte de la anterior
 
 | Versión | Archivo | Qué cambia |
 |---|---|---|
-| GPU base | `v0_base.cu` | Es `ported.cu` con temporizadores y `--validate`. Los kernels no cambian. |
+| GPU base | `v0_base.cu` | Es `ported.cu` trabajado en anteriores ejercicios pero con temporizadores y `--validate`. Los kernels no cambian. |
 | Optimización 1 | `v1_menos_datos.cu` | El render escribe gris (1 byte) en vez de BGR (3 bytes), se quita la sincronización de cada paso y la CPU pasa el gris a BGR antes de escribir. |
 | Optimización 2 | `v2_shared_memory.cu` | Bloques de 32x8 y memoria compartida para los vecinos del stencil. |
 | Optimización 3 | `v3_aritmetica.cu` | `powf(x, 24)` se cambia por multiplicaciones. |
@@ -62,7 +62,6 @@ image[idx] = static_cast<unsigned char>(intensity);
 
 Se quitó `cudaDeviceSynchronize()` de `step()`, se reutilizan los `cv::Mat` del host y la copia baja de 1,228,800 a 409,600 bytes por cuadro. Antes de escribir, la CPU convierte el gris a BGR con `cv::cvtColor`.
 
-**Primer intento.** La primera versión abría el `VideoWriter` con `isColor=false` y le pasaba el gris directo. Con eso la copia sí bajó (2.10 s a 0.90 s en la primera corrida), pero `writer.write` subió de 19.05 s a 25.86 s y el total empeoró de 31.70 s a 36.81 s. Se descartó y se dejó el writer en color, que es lo que muestran las tablas de abajo. Las salidas de esa primera corrida están en `ejercicioF/results_corrida1/`.
 
 **Evidencia.** En el nvprof de la base la copia `memcpy DtoH` tarda 123 µs por cuadro, el 10 % del tiempo de GPU, y el programa esperaba a la GPU en cada paso.
 
