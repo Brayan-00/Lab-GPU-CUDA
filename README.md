@@ -29,22 +29,6 @@ Todo se compiló y midió en la Jetson Nano.
 | Perfilado CPU | `std::chrono` y Google Performance Tools |
 | Perfilado GPU | nvprof |
 
-### Estructura del repositorio
-
-Cada ejercicio tiene su carpeta:
-
-| Ejercicio | Carpeta | Contenido |
-|---|---|---|
-| A | `ejercicioA/` | `main_base.cpp` (versión de CPU que compila en la Jetson) y `meson.build`. Genera `./build/drop_simulation` |
-| B | `ejercicioB/` | `main_comentado.cpp` (código original comentado) |
-| C | `ejercicioC/` | `profiling_chrono.txt`, `profiling_gperftools.txt` y las versiones con temporizadores (`main.cpp`, `main_timers.cpp`, `main_callgrind.cpp`). Genera `./build/drop_simulation` (de `main.cpp`) y `./build/drop_simulation_timers` |
-| D | `ejercicioD/` | `ported.cu` y `meson.build` |
-| E | `ejercicioE/` | pendiente |
-| F | `ejercicioF/` | versiones GPU optimizadas, script de medición, resultados y el video de la versión final |
-
-Los textos de los ejercicios A, B y C son de Fiorela y de Brayan, y solo se ajustaron las rutas para que apunten a estas carpetas.
-
-Las carpetas con `meson.build` se compilan con `meson setup build` y `ninja -C build`. La versión de Meson de la Jetson (0.45.1) no tiene `meson compile`.
 
 ## Programa base
 
@@ -306,7 +290,11 @@ Total: 658 samples
 
 ## Ejercicio F
 
-Se hicieron cuatro optimizaciones sobre la versión GPU, cada una sobre la anterior. Todas parten del perfilado: el de CPU del ejercicio C (`render_frame()` con 78 % del tiempo, `writer.write()` con 17 % y `__powf` como lo más pesado dentro del render) y el nvprof de la versión base. El código está en `ejercicioF/src/`:
+Se hicieron cuatro optimizaciones sobre la versión GPU, la idea fue hacer cada una sobre la anterior. Pero todas parten del perfilado: el de CPU del ejercicio C (`render_frame()` con 78 % del tiempo, `writer.write()` con 17 % y `__powf` como lo más pesado dentro del render) y el nvprof de la versión base. El código está en `ejercicioF/src/`:
+
+
+A manera de resumen así se ve esta carpeta:
+
 
 | Versión | Archivo | Qué cambia |
 |---|---|---|
@@ -333,10 +321,10 @@ El video que genera la versión final (30 s) está en `ejercicioF/video/v4_async
 
 ### Optimización 1: menos datos al host
 
-- Problema: los tres canales del cuadro son iguales, pero se copiaban 1.2 MB por cuadro. Además había un `cudaDeviceSynchronize` después de cada paso.
-- Cambio: el kernel de render escribe un solo canal (409,600 bytes), se quita el `cudaDeviceSynchronize` y la CPU pasa el gris a BGR con `cv::cvtColor` antes de escribir al video.
+- Problema: Basicamente los tres canales del cuadro son iguales, pero se copiaban 1.2 MB por cuadro. Además había un `cudaDeviceSynchronize` después de cada paso.
+- Cambio: el kernel de render escribe un solo canal, se quita el `cudaDeviceSynchronize` y el CPU pasa el gris a BGR con `cv::cvtColor` antes de escribir al video.
 - Evidencia: en nvprof de la base la copia DtoH tarda 123 µs por cuadro, el 10 % del tiempo de GPU.
-- Resultado: la copia baja a 42 µs y el total pasa de 14.34 s a 14.08 s (1.02x).
+- Resultado: la copia baja a 42 µs y el total pasa de 14.34 s a 14.08 s (es decir una mejora de 1.02x o 2% menos).
 - Precisión: sin cambio.
 
 ### Optimización 2: memoria compartida
@@ -354,7 +342,7 @@ const float laplacian = tile[ty][tx - 1] + tile[ty][tx + 1] +
 ```
 
 - Evidencia: el perfil de CPU (ejercicio C) marcó el render y la simulación como lo más pesado, y los dos leen cinco vecinos. En nvprof de la versión 1 tardan 446 µs y 639 µs por cuadro.
-- Resultado: empeoró. La simulación sube a 612 µs y el render a 777 µs, y el total pasa de 14.08 s a 14.28 s (0.99x). Posiblemente llenar el tile cuesta más de lo que se ahorra.
+- Resultado: empeoró. La simulación sube a 612 µs y el render a 777 µs, y el total pasa de 14.08 s a 14.28 s (0.99x). Posiblemente la situación aqui fue que llenar el tile cuesta más de lo que se ahorra por lo que termina no valiendo la pena.
 - Precisión: sin cambio.
 
 ### Optimización 3: aritmética del render
@@ -374,7 +362,7 @@ __device__ float pow24(float x) {
 ```
 
 - Evidencia: en el perfil de CPU del ejercicio C `__powf` (con `exp2` y `log2`) sumaba 31 % de las muestras de gperftools en el perfil de Fiorela y 36 % en el de Brayan. En nvprof el render es el kernel más largo (667 µs, 54 % del tiempo de GPU).
-- Resultado: el render baja de 777 µs a 520 µs y el total de 14.28 s a 14.04 s (1.02x).
+- Resultado: el render baja de 777 µs a 520 µs y el total de 14.28 s a 14.04 s (Mejora de 1.02x).
 - Precisión: el error en píxeles sigue en 1 de 255. No se usó `-use_fast_math` porque con este cambio ya casi no quedan funciones especiales en el kernel.
 
 ### Optimización 4: streams y doble buffer
@@ -453,7 +441,7 @@ Optimización 4
 
 ### Conclusiones
 
-El perfilado del ejercicio C marcó qué portar (`render_frame()` y `simulate_step()`) y de dónde salieron la optimización 3 (`__powf`) y la 4 (`writer.write()`). La versión final es 5.35x más rápida que la CPU (71.5 s a 13.4 s). Casi todo ese salto viene de pasar la simulación y el render a GPU; las cuatro optimizaciones sumaron un 7 % más. La aritmética del render y los streams ayudaron, la memoria compartida no. Lo que falta por mejorar es la codificación del video, que sigue en la CPU, por ejemplo con el codificador por hardware de la Jetson.
+El perfilado del ejercicio C marcó qué portar (`render_frame()` y `simulate_step()`) y de dónde salieron la optimización 3 (`__powf`) y la 4 (`writer.write()`). La versión final es 5.35x más rápida que la CPU (71.5 s a 13.4 s). Casi todo ese salto viene de pasar la simulación y el render a GPU; las cuatro optimizaciones sumaron un 7 % más. La aritmética del render y los streams ayudaron, la memoria compartida no. Lo que falta por mejorar es la codificación del video, que sigue en la CPU y es precisamente lo que más aportaria a optimizar el código, esto se podría hacer, por ejemplo, con el codificador por hardware de la Jetson.
 
 ---
 
@@ -462,3 +450,5 @@ El perfilado del ejercicio C marcó qué portar (`render_frame()` y `simulate_st
 Como método de transparencia, se reporta el uso de herramientas de Inteligencia Artificial como apoyo durante el desarrollo, prueba, análisis y documentación del presente laboratorio.
 
 [Conversación 1](https://chatgpt.com/share/6acc2290-b1e8-83e8-b0b2-0d14620fe590)
+
+[Conversación 2](https://claude.ai/share/251aa86f-f2b4-4041-9438-c7fdb5a50409)
